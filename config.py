@@ -1,0 +1,1 @@
+DIFFICULT = ["Easy","Medium","Hard","ComingSoon"]
