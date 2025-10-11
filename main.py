@@ -21,7 +21,7 @@ DIFFICULT = ["Easy", "Normal", "Hard", "Goddamn"]
 class Rocket(QtWidgets.QGraphicsRectItem):
     def __init__(self, player_name="Player"):
         super().__init__(0, 0, 40, 20)
-        self.setBrush(QtGui.QBrush(QtCore.Qt.blue))
+        self.setBrush(QtGui.QBrush(QtCore.Qt.cyan))
         self.nameItem = QtWidgets.QGraphicsSimpleTextItem(player_name)
         self.nameItem.setBrush(QtGui.QBrush(QtCore.Qt.white))
         self.nameItem.setParentItem(self)
@@ -62,26 +62,40 @@ class Bullet(QtWidgets.QGraphicsRectItem):
 class GameWindow(QtWidgets.QDialog):
     def __init__(self, player_name="Player", difficulty="Easy", parent=None):
         super().__init__(parent)
-        self.setWindowTitle(f"Space Invader ICT - {difficulty}")
+        self.setWindowTitle(f"SPACE INVADER: {difficulty}")
         self.resize(450, 600)
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
+        self.setStyleSheet("""
+            QDialog {
+                background-color: #000;
+                color: #00FF99;
+                font-family: 'Press Start 2P', 'VT323', monospace;
+                font-size: 10px;
+            }
+            QLabel {
+                color: #00FF99;
+            }
+        """)
 
         self.scene = QtWidgets.QGraphicsScene(0, 0, 400, 550)
         self.view = QtWidgets.QGraphicsView(self.scene, self)
         layout = QtWidgets.QVBoxLayout(self)
         layout.addWidget(self.view)
-        self.setStyleSheet('background-color: #18182E;')
 
+        # UI labels
+        labelLayout = QtWidgets.QHBoxLayout()
         self.scoreLabel = QtWidgets.QLabel("Score: 0")
-        layout.addWidget(self.scoreLabel)
         self.hpLabel = QtWidgets.QLabel("HP: 3")
-        layout.addWidget(self.hpLabel)
+        labelLayout.addWidget(self.scoreLabel)
+        labelLayout.addStretch()
+        labelLayout.addWidget(self.hpLabel)
+        layout.addLayout(labelLayout)
 
+        # Player
         self.player_name = player_name
         self.rocket = Rocket(player_name)
         self.rocket.setPos(180, 500)
         self.scene.addItem(self.rocket)
-
         self.player_hp = 3
 
         # Difficulty setup
@@ -117,6 +131,7 @@ class GameWindow(QtWidgets.QDialog):
         if self.is_boss_level:
             boss = Enemy(150, 50, hp=100, aggressive=False)
             boss.setRect(0, 0, 80, 50)
+            boss.setBrush(QtGui.QBrush(QtGui.QColor("#FF007F")))
             self.scene.addItem(boss)
             self.enemies.append(boss)
         else:
@@ -136,10 +151,7 @@ class GameWindow(QtWidgets.QDialog):
 
         self.enemyShootTimer = QtCore.QTimer()
         self.enemyShootTimer.timeout.connect(self.enemyShoot)
-        if self.is_boss_level:
-            self.enemyShootTimer.setInterval(200)
-        else:
-            self.enemyShootTimer.setInterval(1000)
+        self.enemyShootTimer.setInterval(200 if self.is_boss_level else 1000)
         self.enemyShootTimer.start()
 
     def keyPressEvent(self, event):
@@ -168,7 +180,7 @@ class GameWindow(QtWidgets.QDialog):
 
     def updateGame(self):
         self.t += 1
-        # Update bullets
+        # Bullets
         for bullet in self.bullets[:]:
             bullet.setPos(bullet.x() + bullet.direction.x() * bullet.speed,
                            bullet.y() + bullet.direction.y() * bullet.speed)
@@ -199,10 +211,10 @@ class GameWindow(QtWidgets.QDialog):
             elif not self.is_boss_level:
                 e.setX(e.x() + self.direction * self.speed_enemy)
 
-        # Boss movement ซ้ายขวา
+        # Boss movement
         if self.is_boss_level and self.enemies:
             boss = self.enemies[0]
-            new_x = boss.x() + self.boss_direction * 1
+            new_x = boss.x() + self.boss_direction * 2
             if new_x <= 0 or new_x >= 320:
                 self.boss_direction *= -1
             boss.setX(boss.x() + self.boss_direction)
@@ -233,29 +245,29 @@ class GameWindow(QtWidgets.QDialog):
                     self.gameOver()
                     return
 
-        # Win condition
+        # Win
         if not self.enemies:
             self.gameTimer.stop()
             self.moveTimer.stop()
             self.enemyShootTimer.stop()
-            QtWidgets.QMessageBox.information(
-                self, "Victory", f"You win, {self.player_name}! 🎉\nScore: {self.score}"
-            )
+            QtWidgets.QMessageBox.information(self, "Victory",
+                                              f"You win, {self.player_name}! 🎉\nScore: {self.score}")
             self.close()
             showMainMenu()
 
     def enemyShoot(self):
         for e in self.enemies:
             if self.is_boss_level:
-                # Boss ยิงหลายทาง 5-way
                 for angle in [-0.5, -0.25, 0, 0.25, 0.5]:
                     direction = QtCore.QPointF(angle, 1)
                     b = Bullet(e.x() + e.rect().width()/2, e.y() + e.rect().height(), direction, 8)
+                    b.setBrush(QtGui.QBrush(QtCore.Qt.red))
                     self.scene.addItem(b)
                     self.enemy_bullets.append(b)
             else:
                 if random.random() < 0.3:
                     b = Bullet(e.x() + 12, e.y() + 30, QtCore.QPointF(0,1), 6)
+                    b.setBrush(QtGui.QBrush(QtCore.Qt.red))
                     self.scene.addItem(b)
                     self.enemy_bullets.append(b)
 
@@ -263,25 +275,61 @@ class GameWindow(QtWidgets.QDialog):
         self.gameTimer.stop()
         self.moveTimer.stop()
         self.enemyShootTimer.stop()
-        QtWidgets.QMessageBox.warning(
-            self, "Game Over", f"{self.player_name}, you lost!\nFinal Score: {self.score}"
-        )
+        QtWidgets.QMessageBox.warning(self, "Game Over",
+                                      f"{self.player_name}, you lost!\nFinal Score: {self.score}")
         self.close()
         showMainMenu()
 
 # -------------------------------------
-# Main Menu
+# Main Menu (Styled)
 # -------------------------------------
 class SpaceInvaderICT(QtWidgets.QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Space Invader ICT")
+        self.setWindowTitle("SPACE INVADER MENU")
         self.resize(500, 500)
+        self.setStyleSheet("""
+            QDialog {
+                background-color: #000;
+            }
+            QLabel {
+                color: #00FF99;
+                font-family: 'Press Start 2P', 'VT323', monospace;
+                font-size: 10px;
+            }
+            QLineEdit {
+                background-color: black;
+                color: #00FF99;
+                border: 2px solid #00FF99;
+                border-radius: 5px;
+                padding: 6px;
+                font-family: 'Press Start 2P', 'VT323', monospace;
+                font-size: 10px;
+            }
+            QPushButton {
+                background-color: #111;
+                color: #00FF99;
+                border: 2px solid #00FF99;
+                border-radius: 5px;
+                font-family: 'Press Start 2P', 'VT323', monospace;
+                font-size: 10px;
+                padding: 6px;
+            }
+            QPushButton:hover {
+                background-color: #00FF99;
+                color: #000;
+            }
+        """)
 
-        mainLayout = QtWidgets.QVBoxLayout()
-        self.setLayout(mainLayout)
-        self.setStyleSheet('background-color: #18182E;')
+        mainLayout = QtWidgets.QVBoxLayout(self)
 
+        # Title
+        title = QtWidgets.QLabel("SPACE INVADER")
+        title.setAlignment(QtCore.Qt.AlignCenter)
+        title.setStyleSheet("font-size: 38px; color: #00FF99;")
+        mainLayout.addWidget(title)
+
+        # Image
         self.imageLabel = QtWidgets.QLabel()
         image_path = f"{RESOURCES_PATH}/images/MaysaGood.jpg"
         if os.path.exists(image_path):
@@ -292,23 +340,37 @@ class SpaceInvaderICT(QtWidgets.QDialog):
         self.imageLabel.setAlignment(QtCore.Qt.AlignCenter)
         mainLayout.addWidget(self.imageLabel)
 
+        # Name input
         self.nameLineEdit = QtWidgets.QLineEdit()
         self.nameLineEdit.setPlaceholderText("Enter your name...")
         mainLayout.addWidget(self.nameLineEdit)
 
+        # Diff + Start
         hLayout = QtWidgets.QHBoxLayout()
-        mainLayout.addLayout(hLayout)
-
         self.diffCombo = QtWidgets.QComboBox()
         self.diffCombo.addItems(DIFFICULT)
-        self.startButton = QtWidgets.QPushButton("Start")
+        self.diffCombo.setStyleSheet("""
+            QComboBox {
+                background-color: black;
+                color: #00FF99;
+                border: 2px solid #00FF99;
+                border-radius: 5px;
+                font-family: 'Press Start 2P', 'VT323', monospace;
+                font-size: 10px;
+                padding: 4px;
+            }
+        """)
+        self.startButton = QtWidgets.QPushButton("START")
         self.startButton.clicked.connect(self.onStart)
         hLayout.addWidget(self.diffCombo)
         hLayout.addWidget(self.startButton)
+        mainLayout.addLayout(hLayout)
 
-        self.closeButton = QtWidgets.QPushButton("Close")
+        # Close
+        self.closeButton = QtWidgets.QPushButton("EXIT")
         self.closeButton.clicked.connect(self.close)
         mainLayout.addWidget(self.closeButton)
+        mainLayout.addStretch()
 
     def onStart(self):
         player_name = self.nameLineEdit.text().strip() or "Player"

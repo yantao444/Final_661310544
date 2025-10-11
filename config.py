@@ -1,1 +1,1 @@
-DIFFICULT = ["Easy","Medium","Hard","ComingSoon"]
+DIFFICULT = ["Easy","Medium","Hard","Goddamn"]
