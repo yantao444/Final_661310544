@@ -70,13 +70,13 @@ class Enemy(QtWidgets.QGraphicsPixmapItem):
         return True
 
 class Boss(Enemy):
-    def __init__(self, x, y, hp=100, icon_filename="boss.png"):
+    def __init__(self, x, y, hp=100, icon_filename="the witch.png"):
         super().__init__(x, y, hp, icon_filename)
         img_path = os.path.join(RESOURCES_PATH, "icons", icon_filename)
         if os.path.exists(img_path):
-            self.setPixmap(QtGui.QPixmap(img_path).scaled(100, 60, QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation))
+            self.setPixmap(QtGui.QPixmap(img_path).scaled(100, 100, QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation))
         else:
-            self.setPixmap(QtGui.QPixmap(100, 60))
+            self.setPixmap(QtGui.QPixmap(100, 100))
         self.hpLabel.setText(str(hp))
         self.setZValue(6)
 
@@ -119,14 +119,14 @@ class GameWindow(QtWidgets.QDialog):
             bg_filename = "normal_bg.jpg"
             self.speed_enemy = 2
             self.enemy_hp = 2
-            self.enemy_icon = "alien_yellow.png"
+            self.enemy_icon = "mummy.png"
             self.enemies_per_wave = 8
             self.enemy_bullet_speed = 7
         elif difficulty == "Hard":
             bg_filename = "hard_bg.jpg"
             self.speed_enemy = 3
             self.enemy_hp = 2
-            self.enemy_icon = "alien_red.png"
+            self.enemy_icon = "vampire.png"
             self.enemies_per_wave = 10
             self.enemy_bullet_speed = 8
         elif difficulty == "Goddamn":
@@ -134,7 +134,7 @@ class GameWindow(QtWidgets.QDialog):
             self.speed_enemy = 3
             self.enemy_hp = 100
             self.is_boss = True
-            self.enemy_icon = "boss_king.png"
+            self.enemy_icon = "the witch.png"
             self.enemies_per_wave = 1
             opacity_level = 0.3
             self.player_hp = 2
