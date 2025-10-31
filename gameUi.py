@@ -1,4 +1,3 @@
-# gameUi.py
 from spaceGame.gameUtil import getMayaWindow, RESOURCES_PATH, DIFFICULT
 try:
     from PySide6 import QtCore, QtGui, QtWidgets
@@ -347,7 +346,7 @@ class SpaceInvaderICT(QtWidgets.QDialog):
         # Title
         title = QtWidgets.QLabel("MAYSA HALLOWEEN GAME")
         title.setAlignment(QtCore.Qt.AlignCenter)
-        title.setFont(QtGui.QFont("Fredoka One", 28))
+        title.setFont(QtGui.QFont("Fredoka One", 25))
         title.setStyleSheet("color: orange;")
         mainLayout.addWidget(title)
 
