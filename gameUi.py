@@ -206,7 +206,7 @@ class GameWindow(QtWidgets.QDialog):
         self.scene = QtWidgets.QGraphicsScene(0, 0, 400, 550)
         self.view = QtWidgets.QGraphicsView(self.scene, self)
 
-        # ----------------------------------------Background Setup (With Opacity)----------------------------------------
+        # ----------------------------------------Background Setup----------------------------------------
         bg_path = os.path.join(RESOURCES_PATH, "images", bg_filename)
         
         if os.path.exists(bg_path):
