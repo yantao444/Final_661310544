@@ -7,9 +7,7 @@ except:
 
 import os, random, math
 
-# -------------------------------------
-# Game Objects
-# -------------------------------------
+# ----------------------------------------Game Objects----------------------------------------
 class Rocket(QtWidgets.QGraphicsPixmapItem):
     def __init__(self, player_name="Player"):
         super().__init__()
@@ -63,9 +61,7 @@ class Bullet(QtWidgets.QGraphicsRectItem):
         self.speed = speed
         self.setBrush(QtGui.QBrush(color))
 
-# -------------------------------------
-# Game Window
-# -------------------------------------
+# ----------------------------------------Game Window----------------------------------------
 class GameWindow(QtWidgets.QDialog):
     def __init__(self, player_name="Player", difficulty="Easy", parent=None):
         super().__init__(parent)
@@ -74,15 +70,66 @@ class GameWindow(QtWidgets.QDialog):
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
         self.setStyleSheet("""
             QDialog {
-                background-color: #000;
-                color: #00FF99;
+                background-color: #2b003d;
+                color: #ffb347;
                 font-family: 'Press Start 2P', 'VT323', monospace;
                 font-size: 10px;
+                border: 2px solid #ff6600;
+                border-radius: 8px;
             }
+
             QLabel {
-                color: #00FF99;
+                color: #ff7f50;
+                font-weight: bold;
+            }
+
+            QLineEdit, QComboBox {
+                background-color: #3d003d;
+                border: 1px solid #ff7518;
+                color: #ffd;
+                padding: 5px;
+                border-radius: 4px;
+                selection-background-color: #ff6600;
+            }
+
+            QPushButton {
+                background-color: #ff6600;
+                border: 2px solid #ffb347;
+                color: #2b003d;   
+                padding: 6px 10px;
+                border-radius: 6px;
+                font-weight: bold;
+            }
+
+            QPushButton:hover {
+                background-color: #9b30ff;
+                color: #ffd700;
+            }
+
+            QPushButton:pressed {
+                background-color: #ff4500;
+                color: #fff;
+            }
+
+            QScrollBar:vertical {
+                border: none;
+                background: #3d003d;
+                width: 8px;
+            }
+
+            QScrollBar::handle:vertical {
+                background: #ff6600;
+                min-height: 20px;
+                border-radius: 4px;
+            }
+
+            QScrollBar::handle:vertical:hover {
+                background: #ff9933;
             }
         """)
+
+
+
 
         self.scene = QtWidgets.QGraphicsScene(0, 0, 400, 550)
         self.view = QtWidgets.QGraphicsView(self.scene, self)
@@ -103,7 +150,7 @@ class GameWindow(QtWidgets.QDialog):
         self.scene.addItem(self.rocket)
         self.player_hp = 3
 
-        # Difficulty setup
+        # ----------------------------------------Difficulty setup----------------------------------------
         self.speed_enemy = 1
         self.timer_interval = 30
         self.enemy_hp = 1
@@ -127,7 +174,7 @@ class GameWindow(QtWidgets.QDialog):
 
         self.createEnemies()
 
-        # Timers
+        # ----------------------------------------Timers----------------------------------------
         self.gameTimer = QtCore.QTimer()
         self.gameTimer.timeout.connect(self.updateGame)
         self.gameTimer.start(self.timer_interval)
@@ -181,7 +228,7 @@ class GameWindow(QtWidgets.QDialog):
             self.rocket.setX(min(360, self.rocket.x() + 5))
 
     def updateGame(self):
-        # --- Bullet movement ---
+        # ----------------------------------------Bullet movement----------------------------------------
         for bullet in self.bullets[:]:
             bullet.setPos(bullet.x() + bullet.direction.x() * bullet.speed,
                            bullet.y() + bullet.direction.y() * bullet.speed)
@@ -203,7 +250,7 @@ class GameWindow(QtWidgets.QDialog):
                     self.scoreLabel.setText(f"Score: {self.score}")
                     break
 
-        # --- Enemy movement ---
+        # ----------------------------------------Enemy movement----------------------------------------
         if not self.is_boss:
             move_down = False
             for e in self.enemies:
@@ -220,7 +267,7 @@ class GameWindow(QtWidgets.QDialog):
                 boss = self.enemies[0]
                 boss.setX(boss.x() + math.sin(QtCore.QTime.currentTime().msec() * 0.01) * 3)
 
-        # --- Enemy bullets ---
+        # ----------------------------------------Enemy bullets----------------------------------------
         for b in self.enemy_bullets[:]:
             b.setPos(b.x() + b.direction.x() * b.speed, b.y() + b.direction.y() * b.speed)
             if b.y() > 550:
@@ -270,48 +317,132 @@ class GameWindow(QtWidgets.QDialog):
         self.moveTimer.stop()
         self.enemyShootTimer.stop()
 
-# -------------------------------------
-# Main Menu
-# -------------------------------------
+# ----------------------------------------Main Menu----------------------------------------
 class SpaceInvaderICT(QtWidgets.QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("SPACE INVADER MENU")
+        self.setWindowTitle("MAYSA HALLOWEEN GAME")
         self.resize(500, 500)
-        self.setStyleSheet("""
-            QDialog { background-color: #000; }
-            QLabel, QPushButton, QLineEdit, QComboBox {
-                color: #00FF99;
-                font-family: 'Press Start 2P', 'VT323', monospace;
-                font-size: 10px;
-            }
+
+        # ----------------- Load custom font -----------------
+        font_path = os.path.join(RESOURCES_PATH, "font", "FredokaOne-Regular.ttf")
+        QtGui.QFontDatabase.addApplicationFont(font_path)
+        self.customFont = QtGui.QFont("Fredoka One", 14)
+
+        # ----------------- Background image -----------------
+        self.bgLabel = QtWidgets.QLabel(self)
+        bg_path = os.path.join(RESOURCES_PATH, "images", "halloween_bg.jpg")
+        if os.path.exists(bg_path):
+            pixmap = QtGui.QPixmap(bg_path)
+            self.bgLabel.setPixmap(pixmap)
+            self.bgLabel.setScaledContents(True)
+        self.bgLabel.setGeometry(0, 0, self.width(), self.height())
+        self.bgLabel.lower()
+
+        # ----------------- Layout -----------------
+        mainLayout = QtWidgets.QVBoxLayout(self)
+        mainLayout.setContentsMargins(30, 30, 30, 30)
+        mainLayout.setSpacing(15)
+
+        # Title
+        title = QtWidgets.QLabel("MAYSA HALLOWEEN GAME")
+        title.setAlignment(QtCore.Qt.AlignCenter)
+        title.setFont(QtGui.QFont("Fredoka One", 28))
+        title.setStyleSheet("color: orange;")
+        mainLayout.addWidget(title)
+
+        # Player name
+        self.nameLineEdit = QtWidgets.QLineEdit()
+        self.nameLineEdit.setPlaceholderText("Enter your name...")
+        self.nameLineEdit.setFont(self.customFont)
+        self.nameLineEdit.setStyleSheet("""
+            background-color: rgba(0,0,0,150);
+            color: #FFAA00;
+            border: 2px solid #AA00FF;
+            border-radius: 6px;
+            padding: 4px;
+        """)
+        mainLayout.addWidget(self.nameLineEdit)
+
+        # Difficulty selection
+        self.diffCombo = QtWidgets.QComboBox()
+        self.diffCombo.addItems(DIFFICULT)
+        self.diffCombo.setFont(self.customFont)
+        self.diffCombo.setStyleSheet("""
+            background-color: rgba(0,0,0,150);
+            color: #FFAA00;
+            border: 2px solid #AA00FF;
+            border-radius: 6px;
+            padding: 4px;
+        """)
+        mainLayout.addWidget(self.diffCombo)
+
+        # Start button
+        self.startButton = QtWidgets.QPushButton("START")
+        self.startButton.setFont(self.customFont)
+        self.startButton.setStyleSheet("""
             QPushButton {
-                background-color: #111;
-                border: 2px solid #00FF99;
-                border-radius: 5px;
-                padding: 6px;
+                background-color: rgba(80,0,80,180);
+                color: orange;
+                border: 2px solid #FFAA00;
+                border-radius: 8px;
+                padding: 8px;
             }
             QPushButton:hover {
-                background-color: #00FF99;
-                color: #000;
+                background-color: rgba(255,165,0,200);  /* สีส้มสว่าง */
+                color: #2b003d;  /* สีตัวอักษรเข้ม */
+            }
+            QPushButton:pressed {
+                background-color: rgba(170,0,255,200);  /* สีม่วงเข้ม */
+                color: #fff;
             }
         """)
 
-        mainLayout = QtWidgets.QVBoxLayout(self)
-        title = QtWidgets.QLabel("SPACE INVADER")
-        title.setAlignment(QtCore.Qt.AlignCenter)
-        title.setStyleSheet("font-size: 38px; color: #00FF99;")
-        mainLayout.addWidget(title)
+        self.startButton.clicked.connect(self.onStart)
+        mainLayout.addWidget(self.startButton)
 
-        # image
-        self.imageLabel = QtWidgets.QLabel()
-        img_path = f"{RESOURCES_PATH}/images/MaysaGood.jpg"
-        if os.path.exists(img_path):
-            pixmap = QtGui.QPixmap(img_path).scaled(300, 300, QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation)
-            self.imageLabel.setPixmap(pixmap)
-        self.imageLabel.setAlignment(QtCore.Qt.AlignCenter)
-        mainLayout.addWidget(self.imageLabel)
+        # Exit button
+        self.exitButton = QtWidgets.QPushButton("EXIT")
+        self.exitButton.setFont(self.customFont)
+        self.exitButton.setStyleSheet("""
+            QPushButton {
+                background-color: rgba(80,0,80,180);
+                color: orange;
+                border: 2px solid #FFAA00;
+                border-radius: 8px;
+                padding: 8px;
+            }
+            QPushButton:hover {
+                background-color: rgba(255,165,0,200);  /* สีส้มสว่าง */
+                color: #2b003d;  /* สีตัวอักษรเข้ม */
+            }
+            QPushButton:pressed {
+                background-color: rgba(170,0,255,200);  /* สีม่วงเข้ม */
+                color: #fff;
+            }
+        """)
+        self.exitButton.clicked.connect(self.close)
+        mainLayout.addWidget(self.exitButton)
 
+        mainLayout.addStretch()
+
+    def onStart(self):
+        player_name = self.nameLineEdit.text().strip() or "Player"
+        diff = self.diffCombo.currentText()
+        self.close()
+        ptr = getMayaWindow()
+        from spaceGame.gameUi import GameWindow
+        global gameui
+        try:
+            gameui.close()
+        except:
+            pass
+        gameui = GameWindow(player_name=player_name, difficulty=diff, parent=ptr)
+        gameui.show()
+        gameui.setFocus()
+
+
+        # ----------------------------------------image----------------------------------------
         self.nameLineEdit = QtWidgets.QLineEdit()
         self.nameLineEdit.setPlaceholderText("Enter your name...")
         mainLayout.addWidget(self.nameLineEdit)

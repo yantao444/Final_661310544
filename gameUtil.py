@@ -1,4 +1,3 @@
-# gameUtil.py
 try:
     from PySide6 import QtCore, QtGui, QtWidgets
     from shiboken6 import wrapInstance
@@ -14,8 +13,8 @@ def getMayaWindow():
     ptr = omui.MQtUtil.mainWindow()
     return wrapInstance(int(ptr), QtWidgets.QWidget)
 
-# Path ของ resource (ภาพ / เสียง)
+# ----------------------------------------Path ของ resource (ภาพ / เสียง)----------------------------------------
 RESOURCES_PATH = os.path.join(os.path.dirname(__file__), "resources").replace("\\", "/")
 
-# ระดับความยาก
+# ----------------------------------------ระดับความยาก----------------------------------------
 DIFFICULT = ["Easy", "Normal", "Hard", "Goddamn"]
