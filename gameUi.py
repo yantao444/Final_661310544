@@ -1,16 +1,67 @@
-# space_invader_ui.py
+# gameUi.py
+from spaceGame.gameUtil import getMayaWindow, RESOURCES_PATH, DIFFICULT
 try:
     from PySide6 import QtCore, QtGui, QtWidgets
 except:
     from PySide2 import QtCore, QtGui, QtWidgets
 
 import os, random, math
-from space_invader_utils import (
-    getMayaWindow,
-    Rocket, Enemy, Boss, Bullet,
-    RESOURCES_PATH, DIFFICULT
-)
 
+# -------------------------------------
+# Game Objects
+# -------------------------------------
+class Rocket(QtWidgets.QGraphicsPixmapItem):
+    def __init__(self, player_name="Player"):
+        super().__init__()
+        img_path = os.path.join(RESOURCES_PATH, "rocket.png")
+        if os.path.exists(img_path):
+            self.setPixmap(QtGui.QPixmap(img_path).scaled(40, 40, QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation))
+        else:
+            self.setPixmap(QtGui.QPixmap(40, 40))
+        self.nameItem = QtWidgets.QGraphicsSimpleTextItem(player_name)
+        self.nameItem.setBrush(QtGui.QBrush(QtCore.Qt.white))
+        self.nameItem.setParentItem(self)
+        self.nameItem.setPos(0, -20)
+
+class Enemy(QtWidgets.QGraphicsPixmapItem):
+    def __init__(self, x, y, hp=1):
+        super().__init__()
+        self.hp = hp
+        img_path = os.path.join(RESOURCES_PATH, "enemy.png")
+        if os.path.exists(img_path):
+            self.setPixmap(QtGui.QPixmap(img_path).scaled(35, 35, QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation))
+        else:
+            self.setPixmap(QtGui.QPixmap(35, 35))
+        self.setPos(x, y)
+        self.hpLabel = QtWidgets.QGraphicsSimpleTextItem(str(hp))
+        self.hpLabel.setBrush(QtGui.QBrush(QtCore.Qt.yellow))
+        self.hpLabel.setParentItem(self)
+        self.hpLabel.setPos(10, -15)
+
+    def hit(self):
+        self.hp -= 1
+        if self.hp > 0:
+            self.hpLabel.setText(str(self.hp))
+            return False
+        return True
+
+class Boss(Enemy):
+    def __init__(self, x, y, hp=100):
+        super().__init__(x, y, hp)
+        img_path = os.path.join(RESOURCES_PATH, "boss.png")
+        if os.path.exists(img_path):
+            self.setPixmap(QtGui.QPixmap(img_path).scaled(100, 60, QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation))
+        else:
+            self.setPixmap(QtGui.QPixmap(100, 60))
+        self.hpLabel.setText(str(hp))
+
+class Bullet(QtWidgets.QGraphicsRectItem):
+    def __init__(self, x, y, direction=QtCore.QPointF(0, -1), speed=10, color=QtCore.Qt.green):
+        super().__init__(0, 0, 5, 15)
+        self.setPos(x, y)
+        self.direction = direction
+        self.speed = speed
+        self.setBrush(QtGui.QBrush(color))
 
 # -------------------------------------
 # Game Window
@@ -28,7 +79,9 @@ class GameWindow(QtWidgets.QDialog):
                 font-family: 'Press Start 2P', 'VT323', monospace;
                 font-size: 10px;
             }
-            QLabel { color: #00FF99; }
+            QLabel {
+                color: #00FF99;
+            }
         """)
 
         self.scene = QtWidgets.QGraphicsScene(0, 0, 400, 550)
@@ -128,14 +181,15 @@ class GameWindow(QtWidgets.QDialog):
             self.rocket.setX(min(360, self.rocket.x() + 5))
 
     def updateGame(self):
-        # Bullet
+        # --- Bullet movement ---
         for bullet in self.bullets[:]:
             bullet.setPos(bullet.x() + bullet.direction.x() * bullet.speed,
-                          bullet.y() + bullet.direction.y() * bullet.speed)
+                           bullet.y() + bullet.direction.y() * bullet.speed)
             if bullet.y() < 0:
                 self.scene.removeItem(bullet)
                 self.bullets.remove(bullet)
                 continue
+
             for enemy in self.enemies[:]:
                 if bullet.collidesWithItem(enemy):
                     if enemy.hit():
@@ -149,13 +203,14 @@ class GameWindow(QtWidgets.QDialog):
                     self.scoreLabel.setText(f"Score: {self.score}")
                     break
 
-        # Enemy move
+        # --- Enemy movement ---
         if not self.is_boss:
             move_down = False
             for e in self.enemies:
                 e.setX(e.x() + self.speed_enemy * self.enemy_direction)
                 if e.x() <= 0 or e.x() + 40 >= 400:
                     move_down = True
+
             if move_down:
                 self.enemy_direction *= -1
                 for e in self.enemies:
@@ -165,7 +220,7 @@ class GameWindow(QtWidgets.QDialog):
                 boss = self.enemies[0]
                 boss.setX(boss.x() + math.sin(QtCore.QTime.currentTime().msec() * 0.01) * 3)
 
-        # Enemy bullets
+        # --- Enemy bullets ---
         for b in self.enemy_bullets[:]:
             b.setPos(b.x() + b.direction.x() * b.speed, b.y() + b.direction.y() * b.speed)
             if b.y() > 550:
@@ -194,21 +249,19 @@ class GameWindow(QtWidgets.QDialog):
                     self.enemy_bullets.append(b)
             else:
                 if random.random() < 0.3:
-                    b = Bullet(e.x() + 17, e.y() + 35, QtCore.QPointF(0, 1), 6, QtCore.Qt.red)
+                    b = Bullet(e.x() + 17, e.y() + 35, QtCore.QPointF(0,1), 6, QtCore.Qt.red)
                     self.scene.addItem(b)
                     self.enemy_bullets.append(b)
 
     def winGame(self):
         self.stopTimers()
-        QtWidgets.QMessageBox.information(self, "Victory",
-                                          f"You win, {self.player_name}! 🎉\nScore: {self.score}")
+        QtWidgets.QMessageBox.information(self, "Victory", f"You win, {self.player_name}! 🎉\nScore: {self.score}")
         self.close()
         showMainMenu()
 
     def gameOver(self):
         self.stopTimers()
-        QtWidgets.QMessageBox.warning(self, "Game Over",
-                                      f"{self.player_name}, you lost!\nFinal Score: {self.score}")
+        QtWidgets.QMessageBox.warning(self, "Game Over", f"{self.player_name}, you lost!\nFinal Score: {self.score}")
         self.close()
         showMainMenu()
 
@@ -216,7 +269,6 @@ class GameWindow(QtWidgets.QDialog):
         self.gameTimer.stop()
         self.moveTimer.stop()
         self.enemyShootTimer.stop()
-
 
 # -------------------------------------
 # Main Menu
@@ -292,7 +344,6 @@ class SpaceInvaderICT(QtWidgets.QDialog):
         gameui.show()
         gameui.setFocus()
 
-
 def showMainMenu():
     global ui
     try:
@@ -302,7 +353,6 @@ def showMainMenu():
     ptr = getMayaWindow()
     ui = SpaceInvaderICT(parent=ptr)
     ui.show()
-
 
 def run():
     showMainMenu()
